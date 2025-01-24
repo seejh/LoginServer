@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "9RPrswEzUcyBsMUr2gfRklV26K+foqPDLIHqjzueJSw=",
+  "Source": "LoginApiServer",
+  "BasePath": "_content/LoginApiServer",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
