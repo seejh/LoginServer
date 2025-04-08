@@ -72,13 +72,26 @@ HTTP POST 요청, URL : http://localhost:4000/users/refresh-token <br/>
 ### API 테스트 : 모든 사용자를 검색 (인증된 요청)
 JWT 토큰을 가진 모든 사용자를 조회 <br/>
 HTTP GET 요청, URL : http://localhost:4000/users <br/>
-Authorization 탭에서 Type을 Bearer Token으로 변경, 발급받은 액세스 토큰 삽입<br/>
-이후 Send 버튼을 누르면 200 응답과 함께 Response Body에 모든 사용자의 리프레시 토큰 목록을 보여준다. <br/>
+Authorization 탭에서 Type을 Bearer Token으로 변경, 발급 받은 액세스 토큰 삽입 <br/>
+이후 Send 버튼을 누르면 200 OK 응답과 함께 Response Body에 모든 사용자의 리프레시 토큰 목록을 보여준다. <br/>
 
 ### API 테스트 : 특정 사용자의 모든 리프레시 토큰 조회
 특정 사용자(여기선 1번 사용자)의 모든 리프레시 토큰(활성, 만료, 취소) 조회 <br/>
 HTTP GET 요청, URL : http://localhost:4000/users/1/refresh-tokens <br/>
-Authorization 탭에서 
+Authorization 탭에서 Type을 Bearer Token으로 변경, 발급 받은 액세스 토큰 삽입 <br/>
+이후 Send 버튼을 누르면 200 OK 응답과 함께 사용자의 모든 리프레시 토큰 목록을 보여준다 <br/>
+
+### API 테스트 : 토큰 취소
+새 액세스 토큰을 더 이상 생성할 수 없도록 리프레시 토큰을 취소 <br/>
+HTTP POST 요청, URL : localhost:4000/users/revoke-token <br/>
+Authorization 탭에서 Type을 Bearer Token으로 변경, 발급 받은 액세스 토큰 삽입 <br/>
+Body 탭에서 유형을 raw, JSON 선택 <br/>
+{ <br/>
+  "token" : "현재 활성화되어 있는 리프레시 토큰" <br/>
+} <br/>
+이후 Send 버튼을 누르면 200 OK 응답과 함께 Response Body에 Token revoked라는 메세지를 받는다. <br/>
+NOTE: You can also revoke the token in the refreshToken cookie with the /users/revoke-token route, <br/> 
+to revoke the refresh token in the cookie simply send the same request with an empty body. <br/>
 
 출처 : <br/>
 https://jasonwatmore.com/net-6-jwt-authentication-with-refresh-tokens-tutorial-with-example-api#running-angular <br/>
