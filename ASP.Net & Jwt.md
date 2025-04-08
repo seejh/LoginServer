@@ -93,5 +93,46 @@ Body 탭에서 유형을 raw, JSON 선택 <br/>
 NOTE: You can also revoke the token in the refreshToken cookie with the /users/revoke-token route, <br/> 
 to revoke the refresh token in the cookie simply send the same request with an empty body. <br/>
 
+<hr/>
+
+# 프로젝트 구조
+### Authorization 
+API에서 사용자 정의 JWT 인증 및 권한 부여를 구현하는 클래스를 포함한다. <br/>
+AllowAnonymouseAttribute.cs <br/>
+AuthorizeAttribute.cs <br/>
+JwtMiddleware.cs <br/>
+JwtUtils.cs <br/>
+
+### Controller
+웹 API에 대한 엔드포인트/경로를 정의하고, 컨트롤러는 클라이언트 응용 프로그램의 http 요청을 받는 웹 API의 게이트웨이이다. <br/>
+UsersController.cs <br/>
+
+### Model
+컨트롤러 메서드에 대한 요청 및 응답 모델을 나타내며, 요청 모델은 들어오는 요청에 대한 매개 변수를 정의, <br/>
+응답 모델은 반환되는 데이터를 정의한다. <br/>
+AuthenticateRequest.cs <br/>
+AuthenticateResponse.cs <br/>
+RevokeTokenRequest.cs <br/>
+
+### Service
+비즈니스 로직, 검증, DB 액세스 코드가 포함된다. <br/>
+UserService.cs <br/>
+
+### Entity
+DB에 저장된 응용 프로그램의 데이터를 나타낸다. <br/>
+EF Core(Entity Framework Core)는 DB의 관계형 데이터를 데이터 관리 및 CRUD 작업에 애플리케이션 내에서 <br/>
+사용할 C# 엔터티 개체의 인스턴스로 매핑한다. <br/>
+RefreshToken.cs <br/>
+User.cs <br/>
+
+### Helper
+위의 경우에 맞지 않는 모든 것 <br/>
+AppException.cs <br/>
+AppSettings.cs <br/>
+DataContext.cs <br/>
+ErrorHandlerMiddleware.cs <br/>
+
+
+<hr/>
 출처 : <br/>
 https://jasonwatmore.com/net-6-jwt-authentication-with-refresh-tokens-tutorial-with-example-api#running-angular <br/>
