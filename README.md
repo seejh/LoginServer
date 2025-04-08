@@ -1,1 +1,1 @@
-JWT, Redis
+ASP.NET Core API, JWT, Redis
