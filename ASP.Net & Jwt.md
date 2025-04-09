@@ -96,29 +96,29 @@ to revoke the refresh token in the cookie simply send the same request with an e
 <hr/>
 
 # 프로젝트 구조
-### Authorization 
+### Authorization (인증)
 API에서 사용자 정의 JWT 인증 및 권한 부여를 구현하는 클래스를 포함한다. <br/>
 AllowAnonymouseAttribute.cs <br/>
 AuthorizeAttribute.cs <br/>
 JwtMiddleware.cs <br/>
 JwtUtils.cs <br/>
 
-### Controller
-웹 API에 대한 엔드포인트/경로를 정의하고, 컨트롤러는 클라이언트 응용 프로그램의 http 요청을 받는 웹 API의 게이트웨이이다. <br/>
+### Controller (컨트롤러)
+웹 API에 대한 엔드포인트/경로를 정의, 컨트롤러는 클라이언트 응용 프로그램의 http 요청을 받는 웹 API의 게이트웨이이다. <br/>
 UsersController.cs <br/>
 
-### Model
+### Model (모델)
 컨트롤러 메서드에 대한 요청 및 응답 모델을 나타내며, 요청 모델은 들어오는 요청에 대한 매개 변수를 정의, <br/>
 응답 모델은 반환되는 데이터를 정의한다. <br/>
 AuthenticateRequest.cs <br/>
 AuthenticateResponse.cs <br/>
 RevokeTokenRequest.cs <br/>
 
-### Service
+### Service (서비스)
 비즈니스 로직, 검증, DB 액세스 코드가 포함된다. <br/>
 UserService.cs <br/>
 
-### Entity
+### Entity (엔티티)
 DB에 저장된 응용 프로그램의 데이터를 나타낸다. <br/>
 EF Core(Entity Framework Core)는 DB의 관계형 데이터를 데이터 관리 및 CRUD 작업에 애플리케이션 내에서 <br/>
 사용할 C# 엔터티 개체의 인스턴스로 매핑한다. <br/>
@@ -131,6 +131,99 @@ AppException.cs <br/>
 AppSettings.cs <br/>
 DataContext.cs <br/>
 ErrorHandlerMiddleware.cs <br/>
+
+<hr/>
+
+# 각 파일 설명
+## Authorization
+### 커스텀 익명 허용 특성
+AllowAnonymousAttribute.cs <br/>
+커스텀 [AllowAnonymouse] 특성은 [Authorize] 특성으로 장식되어 있는 컨트롤러의 특정 메서드에 대한 익명 액세스를 허용하는데 사용 <br/>
+UsersController는 [] authenticate 및 리프레시 토큰 작업 메서드에 대한 익명 액세스를 허용하는데 사용한다. <br/>
+내장된 AllowAnonymous 특성을 사용하지 않고 사용자 지정으로 만들어 사용하는데 내장된 것과 네임스페이스
+충돌을 피해서 사용해야 한다. <br/>
+
+```c#
+namespace WebApi.Authorization;
+
+[AttributeUsage(AttributeTargets.Method)]
+public class AllowAnonymousAttribute : Attribute
+{ }
+```
+
+### 커스텀 인증 특성
+AuthorizeAttribute.cs <br/>
+커스텀 [Authorize] 특성은 컨트롤러나 컨트롤러의 특정 작업 메서드에 대한 접근을 제한하는데 사용 <br/>
+인증된 요청만이 허용될 수 있다. <br/>
+컨트롤러가 [Authorize] 특성으로 장식되면 [AllowAnonymous] 특성으로 장식된 작업 메서드들을 제외하고 모든 메서드가 제한된다. <br/>
+인증은 현재 요청(context.HttpContext.Items["User"])에 인증된 사용자가 첨부되어 있는지 체크하는 OnAuthorization 메서드에 의해 수행된다. <br/>
+요청에 정당한 JWT 액세스 토큰이 있다면 커스텀 JWT 미들웨어에 의해 인증된 사용자로 첨부된다.
+인증에 실패하면 401 Unauthorized 응답을 받는다. <br/>
+
+```c#
+namespace WebApi.Authorization;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using WebApi.Entities;
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class AuthorizeAttribute : Attribute, IAuthorizationFilter
+{
+    public void OnAuthorization(AuthorizationFilterContext context)
+    {
+        // 메서드가 [AllowAnonymous] 특성으로 장식되어 있으면 인증 패스
+        var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
+        if (allowAnonymous)
+            return;
+
+        // 그렇지 않다면, 인증
+        var user = (User)context.HttpContext.Items["User"];
+        if (user == null)
+            context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+    }
+}
+```
+
+### 커스텀 JWT 미들웨어
+JwtMiddleware.cs <br/>
+커스텀 JWT 미들웨어는 요청 인증 헤더에서 JWT 토큰을 추출하고 jwtUtils.ValidateToken() 메서드로 유효성을 검사한다. <br/> 
+
+```c#
+namespace WebApi.Authorization;
+
+using Microsoft.Extensions.Options;
+using WebApi.Helpers;
+using WebApi.Services;
+
+public class JwtMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly AppSettings _appSettings;
+
+    public JwtMiddleware(RequestDelegate next, IOptions<AppSettings> appSettings)
+    {
+        _next = next;
+        _appSettings = appSettings.Value;
+    }
+
+    public async Task Invoke(HttpContext context, IUserService userService, IJwtUtils jwtUtils)
+    {
+        var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        var userId = jwtUtils.ValidateJwtToken(token);
+        if (userId != null)
+        {
+            // attach user to context on successful jwt validation
+            context.Items["User"] = userService.GetById(userId.Value);
+        }
+
+        await _next(context);
+    }
+}
+```
+
+### JWT 유틸리티
+JwtUtils.cs <br/>
 
 
 <hr/>
