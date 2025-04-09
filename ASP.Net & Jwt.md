@@ -225,6 +225,7 @@ public class JwtMiddleware
 ### JWT 유틸리티
 JwtUtils.cs <br/>
 
+가독성이 너무 떨어진다. 따로 분류해서 정리 필요 <br/>
 
 <hr/>
 출처 : <br/>
