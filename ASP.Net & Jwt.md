@@ -139,7 +139,7 @@ ErrorHandlerMiddleware.cs <br/>
 ### 커스텀 익명 허용 특성
 AllowAnonymousAttribute.cs <br/>
 커스텀 [AllowAnonymouse] 특성은 [Authorize] 특성으로 장식되어 있는 컨트롤러의 특정 메서드에 대한 익명 액세스를 허용하는데 사용 <br/>
-UsersController는 [] authenticate 및 리프레시 토큰 작업 메서드에 대한 익명 액세스를 허용하는데 사용한다. <br/>
+UsersController는 authenticate 및 리프레시 토큰 작업 메서드에 대한 익명 액세스를 허용하는데 사용한다. <br/>
 내장된 AllowAnonymous 특성을 사용하지 않고 사용자 지정으로 만들어 사용하는데 내장된 것과 네임스페이스
 충돌을 피해서 사용해야 한다. <br/>
 
